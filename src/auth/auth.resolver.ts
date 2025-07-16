@@ -4,6 +4,10 @@ import { User } from 'src/users/entities/user.entity';
 import { CreateUserInput } from 'src/users/dto/create-user.input';
 import { AuthType } from 'src/types/auth.type';
 import { LoginInput } from './input/login.type';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { Payload } from 'src/types/payload.type';
+import { AuthGuard } from './guards/auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver()
 export class AuthResolver {
@@ -32,16 +36,17 @@ export class AuthResolver {
     return this.authService.enterCompareCode(sendedCode, writtenCode);
   }
 
+  @UseGuards(AuthGuard)
   @Mutation(() => Boolean, { name: 'updatePassword' })
   async updatePassword(
     @Args('newPassword') newPassword: string,
     @Args('confirmNewPassword') confirmNewPassword: string,
-    @Args('email') email: string,
+    @CurrentUser() currentUser: Payload,
   ) {
     return await this.authService.updatePassword(
       newPassword,
       confirmNewPassword,
-      email,
+      currentUser.sub.userId,
     );
   }
 }

@@ -13,6 +13,7 @@ import { Order } from './orders/entities/order.entity';
 import { Product } from './products/entities/product.entity';
 import { AuthModule } from './auth/auth.module';
 import { OrderItem } from './orders/entities/order-items.entity';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [

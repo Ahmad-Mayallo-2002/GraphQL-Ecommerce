@@ -1,13 +1,12 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, Float, InputType } from '@nestjs/graphql';
 import { OrderStatus } from 'src/enums/order-status.enum';
 import { Payment } from 'src/enums/payment.enum';
 import { CreateOrderItemInput } from './create-order-items.input';
-import { IsEmpty, IsNotEmpty, IsPositive, IsString } from 'class-validator';
+import { IsNotEmpty, IsPositive, IsString } from 'class-validator';
 
 @InputType()
 export class CreateOrderInput {
   @Field(() => [CreateOrderItemInput], { nullable: false })
-  @IsEmpty()
   items: CreateOrderItemInput[];
 
   @IsNotEmpty()
@@ -15,15 +14,12 @@ export class CreateOrderInput {
   @Field({ nullable: false })
   address: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @Field(() => OrderStatus, { nullable: false })
+  @Field(() => OrderStatus, { nullable: true })
   status: OrderStatus;
 
   @IsNotEmpty()
   @IsPositive()
-  @IsPositive()
-  @Field({ nullable: false, defaultValue: 0 })
+  @Field(() => Float, { nullable: false, defaultValue: 0 })
   totalPrice: number;
 
   @IsNotEmpty()

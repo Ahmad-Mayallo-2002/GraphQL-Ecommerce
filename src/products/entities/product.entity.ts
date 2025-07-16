@@ -1,4 +1,4 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Float } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -17,29 +17,45 @@ export class Product {
   @Field(() => String)
   id: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255 })
   @Field()
   title: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'text' })
   @Field()
   description: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'text' })
   @Field()
   image: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255 })
   @Field()
   category: string;
 
-  @Column({ type: 'decimal', default: 0, nullable: false })
+  @Column({ type: 'decimal' })
   @Field()
   price: number;
 
-  @Column({ type: 'int', default: 0, nullable: false })
+  @Column({ type: 'int', default: 0 })
   @Field()
   stock: number;
+
+  @Column({ type: 'varchar', length: 255 })
+  @Field()
+  color: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  @Field()
+  size: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  @Field()
+  brand: string;
+
+  @Column({ type: 'decimal', default: 0 })
+  @Field(() => Float)
+  discount: number;
 
   @CreateDateColumn()
   @Field(() => Date)

@@ -1,4 +1,4 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Float } from '@nestjs/graphql';
 import { OrderStatus } from 'src/enums/order-status.enum';
 import { Payment } from 'src/enums/payment.enum';
 import { User } from 'src/users/entities/user.entity';
@@ -27,11 +27,11 @@ export class Order {
   address: string;
 
   @Column({ type: 'decimal', nullable: false, default: 0 })
-  @Field()
+  @Field(() => Float)
   totalPrice: number;
 
   @Column({ type: 'enum', enum: Payment, nullable: false })
-  @Field()
+  @Field(() => Payment)
   payment: Payment;
 
   @Column({

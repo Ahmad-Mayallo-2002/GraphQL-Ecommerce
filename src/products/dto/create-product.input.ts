@@ -1,5 +1,12 @@
 import { Field, Float, InputType, Int } from '@nestjs/graphql';
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsDecimal,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsPositive,
+  IsString,
+} from 'class-validator';
 
 @InputType()
 export class CreateProductInput {
@@ -18,17 +25,38 @@ export class CreateProductInput {
   @Field({ nullable: false })
   category: string;
 
-  @IsNotEmpty()
   @IsString()
-  @Field({ nullable: false, defaultValue: '' })
+  @Field({ nullable: true, defaultValue: '' })
   image: string;
 
   @IsNotEmpty()
-  @Field(() => Float, { nullable: false, defaultValue: 0 })
+  @IsPositive()
+  @Field(() => Float, { nullable: false })
   price: number;
+
+  @IsPositive()
+  @IsNumber()
+  @Field(() => Float, { nullable: true })
+  discount: number;
 
   @IsNotEmpty()
   @IsInt()
-  @Field(() => Int, { nullable: false, defaultValue: 1 })
+  @IsPositive()
+  @Field(() => Int, { nullable: false })
   stock: number;
+
+  @IsString()
+  @IsNotEmpty()
+  @Field({ nullable: false })
+  color: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Field({ nullable: false })
+  size: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @Field({ nullable: false })
+  brand: string;
 }

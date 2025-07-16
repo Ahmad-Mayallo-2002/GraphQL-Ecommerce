@@ -25,7 +25,7 @@ export class OrdersResolver {
   }
 
   @UseGuards(AuthGuard)
-  @Query(() => [Order], { name: 'getByUserId' })
+  @Query(() => [Order], { name: 'getUserOrders' })
   async getByUserId(@Args('userId') userId: string) {
     return await this.ordersService.findByUserId(userId);
   }
@@ -46,7 +46,7 @@ export class OrdersResolver {
   }
 
   @UseGuards(AuthGuard)
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { name: 'updateOrderStatus' })
   async updateOrderStatus(
     @Args('id', { type: () => String }) id: string,
     @Args('status', { type: () => OrderStatus }) status: OrderStatus,
@@ -56,7 +56,7 @@ export class OrdersResolver {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { name: 'deleteOrder' })
   async removeOrder(
     @Args('id', { type: () => String }) id: string,
   ): OrNotFound<Boolean> {

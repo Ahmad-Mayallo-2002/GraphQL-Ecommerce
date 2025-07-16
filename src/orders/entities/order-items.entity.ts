@@ -9,13 +9,13 @@ import {
 } from 'typeorm';
 import { Order } from './order.entity';
 import { Product } from 'src/products/entities/product.entity';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @Entity({ name: 'order-items' })
 @ObjectType()
 export class OrderItem {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @ManyToOne(() => Order, (order) => order.items, { onDelete: 'CASCADE' })
   @Field(() => Order)
@@ -25,13 +25,9 @@ export class OrderItem {
   @Field(() => Product)
   product: Relation<Product>;
 
-  @Column()
-  @Field()
+  @Column({ type: 'int' })
+  @Field(() => Int)
   quantity: number;
-
-  @Column('decimal')
-  @Field()
-  price: number;
 
   @CreateDateColumn()
   @Field()

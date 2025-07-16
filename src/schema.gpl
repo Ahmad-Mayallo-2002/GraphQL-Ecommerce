@@ -12,7 +12,7 @@ input CreateOrderInput {
   address: String!
   items: [CreateOrderItemInput!]!
   payment: Payment!
-  status: OrderStatus!
+  status: OrderStatus
   totalPrice: Float! = 0
 }
 
@@ -22,11 +22,15 @@ input CreateOrderItemInput {
 }
 
 input CreateProductInput {
+  brand: String!
   category: String!
+  color: String!
   description: String!
-  image: String! = ""
-  price: Float! = 0
-  stock: Int! = 1
+  discount: Float
+  image: String = ""
+  price: Float!
+  size: String!
+  stock: Int!
   title: String!
 }
 
@@ -50,17 +54,18 @@ input LoginInput {
 type Mutation {
   createOrder(input: CreateOrderInput!): Order!
   createProduct(image: Upload!, input: CreateProductInput!): Product!
+  deleteOrder(id: String!): Boolean!
   deleteProduct(id: String!): Boolean!
   deleteUser(id: String!): Boolean!
   enterCompareCode(sendedCode: String!, writtenCode: String!): Boolean!
   login(input: LoginInput!): AuthType!
-  removeOrder(id: String!): Boolean!
+  seedAdmin: String!
   sendCodePassword(email: String!): String!
   signUp(input: CreateUserInput!): User!
   updateOrderStatus(id: String!, status: OrderStatus!): Boolean!
-  updatePassword(confirmNewPassword: String!, email: String!, newPassword: String!): Boolean!
-  updateProduct(id: String!, input: UpdateProductInput!): Boolean!
-  updateUser(input: UpdateUserInput!): Boolean!
+  updatePassword(confirmNewPassword: String!, newPassword: String!): Boolean!
+  updateProduct(id: String!, image: Upload, input: UpdateProductInput!): Boolean!
+  updateUser(input: UpdateUserInput!): String!
 }
 
 type Order {
@@ -78,9 +83,8 @@ type Order {
 type OrderItem {
   created_at: DateTime!
   order: Order!
-  price: Float!
   product: Product!
-  quantity: Float!
+  quantity: Int!
   updated_at: DateTime!
 }
 
@@ -100,26 +104,35 @@ enum Payment {
 }
 
 type Product {
+  brand: String!
   category: String!
+  color: String!
   created_at: DateTime!
   description: String!
+  discount: Float!
   id: String!
   image: String!
   price: Float!
+  size: String!
   stock: Float!
   title: String!
   updated_at: DateTime!
 }
 
+type ProductsAndCounts {
+  counts: Float!
+  products: [Product!]!
+}
+
 type Query {
-  getByUserId(userId: String!): [Order!]!
   getOrder(id: String!): Order!
   getOrders: [Order!]!
   getProduct(id: String!): Product!
-  getProducts: [Product!]!
+  getProducts(skip: Int = 0, sort: String, take: Int): ProductsAndCounts!
   getProductsByCategory(category: String!): [Product!]!
   getUser: User!
-  getUsers: [User!]!
+  getUserOrders(userId: String!): [Order!]!
+  getUsers(skip: Int! = 0, take: Int!): UsersAndCounts!
 }
 
 """This is Role Enum User or Admin"""
@@ -129,11 +142,15 @@ enum Role {
 }
 
 input UpdateProductInput {
+  brand: String
   category: String
+  color: String
   description: String
+  discount: Float
   image: String = ""
-  price: Float = 0
-  stock: Int = 1
+  price: Float
+  size: String
+  stock: Int
   title: String
 }
 
@@ -156,4 +173,9 @@ type User {
   role: Role!
   updated_at: DateTime!
   username: String!
+}
+
+type UsersAndCounts {
+  count: Int!
+  users: [User!]!
 }

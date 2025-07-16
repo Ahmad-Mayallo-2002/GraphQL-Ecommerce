@@ -12,6 +12,7 @@ import { OrderStatus } from 'src/enums/order-status.enum';
 import { User } from 'src/users/entities/user.entity';
 import { OrderItem } from './entities/order-items.entity';
 import { Product } from 'src/products/entities/product.entity';
+import { log } from 'console';
 
 @Injectable()
 export class OrdersService {
@@ -67,7 +68,6 @@ export class OrdersService {
   async createOrder(input: CreateOrderInput, userId: string) {
     const user = await this.getUser(userId);
     const items: OrderItem[] = [];
-    let total: number = 0;
     for (const item of input.items) {
       const product = await this.getProduct(item.productId);
       if (product.stock < item.quantity)
@@ -77,11 +77,9 @@ export class OrdersService {
       const orderItem = this.orderItemRepo.create({
         product,
         quantity: item.quantity,
-        price: product.price,
       });
 
       items.push(orderItem);
-      total += Number(product.price) * item.quantity;
     }
     if (!items.length) throw new Error('Order is Empty!');
     const order = this.orderRepo.create({
@@ -89,7 +87,7 @@ export class OrdersService {
       items,
       payment: input.payment,
       address: input.address,
-      totalPrice: total,
+      totalPrice: +input.totalPrice.toFixed(2),
       status: OrderStatus.SHIPPED,
     });
 
@@ -107,7 +105,13 @@ export class OrdersService {
   }
 
   async remove(id: string): OrNotFound<Boolean> {
-    await this.getOrder(id);
+    const order = await this.getOrder(id);
+    for (const orderItem of order.items) {
+      const currentProduct = await this.getProduct(orderItem.product.id);
+      await this.productRepo.update(orderItem.product.id, {
+        stock: currentProduct.stock + orderItem.quantity,
+      });
+    }
     await this.orderRepo.delete(id);
     return true;
   }

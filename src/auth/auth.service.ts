@@ -23,7 +23,7 @@ export class AuthService {
   async signUp(input: CreateUserInput) {
     const user = await this.userRepo.findOneBy({ email: input.email });
     if (user) return new ConflictException('This email is used!');
-    
+
     const newUser = this.userRepo.create({
       ...input,
       password: await hash(input.password, 10),
@@ -73,14 +73,14 @@ export class AuthService {
   async updatePassword(
     newPassword: string,
     confirmNewPassword: string,
-    email: string,
+    id: string,
   ) {
     if (!newPassword || !confirmNewPassword)
       throw new Error('Two passwords are required');
     if (newPassword !== confirmNewPassword)
       throw new Error('Passwords are not equal');
     await this.userRepo.update(
-      { email },
+      { id },
       {
         password: await hash(newPassword, 10),
       },

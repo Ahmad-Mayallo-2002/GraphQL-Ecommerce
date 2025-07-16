@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductInput } from './dto/create-product.input';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductInput } from './dto/update-product.input';
 import { OrNotFound } from 'src/types/aliases';
 import { CloudinaryService } from 'src/cloudinary.service';
 import { FileUpload } from 'graphql-upload-ts';
+import { log } from 'console';
 
 @Injectable()
 export class ProductsService {
@@ -22,7 +23,7 @@ export class ProductsService {
     return product;
   }
 
-  async create(input: CreateProductInput, image: FileUpload): OrNotFound<Product> {
+  private async getImageSecureUrl(image: FileUpload) {
     const { createReadStream, filename, mimetype } = image;
     const buffer = await new Promise<Buffer>((resolve, reject) => {
       const chunks: Uint8Array[] = [];
@@ -34,16 +35,33 @@ export class ProductsService {
     const imageUrl = await this.cloudinaryService.uploadFile({
       buffer,
       originalname: filename,
-      mimetype
+      mimetype,
     } as Express.Multer.File);
-    const product = this.productRepo.create({...input, image: imageUrl});
-    return await this.productRepo.save(product);;
+    return imageUrl;
   }
 
-  async findAll(): OrNotFound<Product[]> {
-    const products = await this.productRepo.find();
+  async findAll(
+    skip: number,
+    sort: string,
+    take: number,
+  ): OrNotFound<any> {
+    let orderBy: Record<string, string> = {};
+    switch (sort) {
+      case 'ASC':
+        orderBy = { price: 'ASC' };
+        break;
+      case 'DESC':
+        orderBy = { price: 'DESC' };
+        break;
+    }
+    const products = await this.productRepo.find({
+      order: orderBy,
+      take,
+      skip,
+    });
+    const counts = await this.productRepo.count();
     if (!products.length) return new NotFoundException('No Products!');
-    return products;
+    return { products, counts };
   }
 
   async findOne(id: string): OrNotFound<Product> {
@@ -56,9 +74,31 @@ export class ProductsService {
     return products;
   }
 
-  async update(id: string, input: UpdateProductInput): OrNotFound<Boolean> {
-    await this.getProduct(id);
-    await this.productRepo.update(id, input as any);
+  async create(
+    input: CreateProductInput,
+    image: FileUpload,
+  ): OrNotFound<Product> {
+    const imageUrl = await this.getImageSecureUrl(image);
+    const product = this.productRepo.create({ ...input, image: imageUrl });
+    return await this.productRepo.save(product);
+  }
+
+  async update(
+    id: string,
+    input: UpdateProductInput,
+    image?: FileUpload,
+  ): OrNotFound<Boolean> {
+    const existing = (await this.getProduct(id)) as Product;
+    if (!image && !input) return false;
+    if (image) {
+      const imageUrl = await this.getImageSecureUrl(image);
+      input.image = imageUrl;
+    } else {
+      input.image = existing.image;
+    }
+    log(input);
+    const result = this.productRepo.merge(existing, input);
+    await this.productRepo.save(result);
     return true;
   }
 
