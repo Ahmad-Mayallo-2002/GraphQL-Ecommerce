@@ -8,6 +8,7 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import { Payload } from 'src/types/payload.type';
 import { AuthGuard } from './guards/auth.guard';
 import { UseGuards } from '@nestjs/common';
+import { log } from 'console';
 
 @Resolver()
 export class AuthResolver {
@@ -39,6 +40,8 @@ export class AuthResolver {
   @UseGuards(AuthGuard)
   @Mutation(() => Boolean, { name: 'updatePassword' })
   async updatePassword(
+    @Args('oldPassword')
+    oldPassword: string,
     @Args('newPassword') newPassword: string,
     @Args('confirmNewPassword') confirmNewPassword: string,
     @CurrentUser() currentUser: Payload,
@@ -47,6 +50,20 @@ export class AuthResolver {
       newPassword,
       confirmNewPassword,
       currentUser.sub.userId,
+      oldPassword,
+    );
+  }
+
+  @Mutation(() => Boolean, { name: 'updateForgottedPassword' })
+  async updateForgottedPassword(
+    @Args('newPassword') newPassword: string,
+    @Args('confirmNewPassword') confirmNewPassword: string,
+    @Args('email') email: string,
+  ) {
+    return await this.authService.updateForgottedPassword(
+      email,
+      newPassword,
+      confirmNewPassword,
     );
   }
 }

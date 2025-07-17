@@ -1,13 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductInput } from './dto/create-product.input';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductInput } from './dto/update-product.input';
 import { OrNotFound } from 'src/types/aliases';
 import { CloudinaryService } from 'src/cloudinary.service';
 import { FileUpload } from 'graphql-upload-ts';
-import { log } from 'console';
 
 @Injectable()
 export class ProductsService {
@@ -40,12 +39,8 @@ export class ProductsService {
     return imageUrl;
   }
 
-  async findAll(
-    skip: number,
-    sort: string,
-    take: number,
-  ): OrNotFound<any> {
-    let orderBy: Record<string, string> = {};
+  async findAll(skip: number, take: number, sort: string): OrNotFound<any> {
+    let orderBy = {};
     switch (sort) {
       case 'ASC':
         orderBy = { price: 'ASC' };
@@ -55,12 +50,14 @@ export class ProductsService {
         break;
     }
     const products = await this.productRepo.find({
+      skip,
       order: orderBy,
       take,
-      skip,
     });
+
     const counts = await this.productRepo.count();
-    if (!products.length) return new NotFoundException('No Products!');
+    if (!products.length) throw new NotFoundException('No Products!');
+
     return { products, counts };
   }
 
@@ -68,9 +65,20 @@ export class ProductsService {
     return await this.getProduct(id);
   }
 
-  async findProductsByCategory(category: string): OrNotFound<Product[]> {
-    const products = await this.productRepo.findBy({ category });
-    if (!products.length) return new NotFoundException('No Products!');
+  async filterProducts(
+    color: string[],
+    category: string[],
+    brand: string[],
+    size: string[],
+  ): OrNotFound<Product[]> {
+    const products = await this.productRepo
+      .createQueryBuilder('product')
+      .where('product.color IN (:...color)', { color })
+      .orWhere('product.category IN (:...category)', { category })
+      .orWhere('product.brand IN (:...brand)', { brand })
+      .orWhere('product.size IN (:...size)', { size })
+      .orderBy({ price: 'ASC' })
+      .getMany();
     return products;
   }
 
@@ -96,7 +104,6 @@ export class ProductsService {
     } else {
       input.image = existing.image;
     }
-    log(input);
     const result = this.productRepo.merge(existing, input);
     await this.productRepo.save(result);
     return true;

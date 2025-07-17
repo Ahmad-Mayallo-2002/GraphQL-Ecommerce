@@ -12,6 +12,11 @@ import { Roles } from 'src/auth/decorators/role.decorator';
 import { FileUpload, GraphQLUpload } from 'graphql-upload-ts';
 import { ProductsAndCounts } from 'src/types/ProductsAndCounts';
 import { log } from 'console';
+import {
+  ProductsFilters,
+  Sort,
+  type TestInterface,
+} from 'src/types/ProductsFilters.type';
 
 @Resolver(() => Product)
 export class ProductsResolver {
@@ -23,12 +28,12 @@ export class ProductsResolver {
   findAll(
     @Args('skip', { type: () => Int, nullable: true, defaultValue: 0 })
     skip: number,
-    @Args('sort', { type: () => String, nullable: true })
+    @Args('sort', { type: () => String, nullable: true, defaultValue: '' })
     sort: string,
     @Args('take', { type: () => Int, nullable: true })
-    take?: number,
+    take: number,
   ): OrNotFound<any> {
-    return this.productsService.findAll(skip, sort, take as number);
+    return this.productsService.findAll(skip, take, sort);
   }
 
   @Query(() => Product, { name: 'getProduct' })
@@ -36,9 +41,14 @@ export class ProductsResolver {
     return this.productsService.findOne(id);
   }
 
-  @Query(() => [Product], { name: 'getProductsByCategory' })
-  findProductsByCategory(@Args('category') category: string) {
-    return this.productsService.findProductsByCategory(category);
+  @Query(() => [Product], { name: 'filterProducts' })
+  filterProducts(
+    @Args('color', { type: () => [String] }) color: string[],
+    @Args('category', { type: () => [String] }) category: string[],
+    @Args('brand', { type: () => [String] }) brand: string[],
+    @Args('size', { type: () => [String] }) size: string[],
+  ) {
+    return this.productsService.filterProducts(color, category, brand, size);
   }
 
   @UseGuards(AuthGuard)

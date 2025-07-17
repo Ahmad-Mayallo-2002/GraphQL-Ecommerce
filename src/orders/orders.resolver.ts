@@ -5,12 +5,13 @@ import { CreateOrderInput } from './dto/create-order.input';
 import { OrderStatus } from 'src/enums/order-status.enum';
 import { OrNotFound } from 'src/types/aliases';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { User } from 'src/users/entities/user.entity';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Role } from 'src/enums/role.enum';
+import { log } from 'console';
+import { Payload } from 'src/types/payload.type';
 
 @Resolver(() => Order)
 export class OrdersResolver {
@@ -19,9 +20,9 @@ export class OrdersResolver {
   @Mutation(() => Order, { name: 'createOrder' })
   async createOrder(
     @Args('input', { type: () => CreateOrderInput }) input: CreateOrderInput,
-    @CurrentUser() user: User,
+    @CurrentUser() user: Payload,
   ) {
-    return await this.ordersService.createOrder(input, user.id);
+    return await this.ordersService.createOrder(input, user);
   }
 
   @UseGuards(AuthGuard)

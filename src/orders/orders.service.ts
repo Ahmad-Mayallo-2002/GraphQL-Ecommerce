@@ -13,6 +13,7 @@ import { User } from 'src/users/entities/user.entity';
 import { OrderItem } from './entities/order-items.entity';
 import { Product } from 'src/products/entities/product.entity';
 import { log } from 'console';
+import { Payload } from 'src/types/payload.type';
 
 @Injectable()
 export class OrdersService {
@@ -53,9 +54,9 @@ export class OrdersService {
   }
 
   async findByUserId(userId: string) {
-    await this.getUser(userId);
+    const currentUser = await this.getUser(userId);
     const orders = await this.orderRepo.find({
-      where: { user: { id: userId } },
+      where: { user: { id: currentUser.id } },
       relations: ['user', 'items', 'items.product'],
     });
     return orders;
@@ -65,8 +66,8 @@ export class OrdersService {
     return await this.getOrder(id);
   }
 
-  async createOrder(input: CreateOrderInput, userId: string) {
-    const user = await this.getUser(userId);
+  async createOrder(input: CreateOrderInput, currentUser: Payload) {
+    const user = await this.getUser(currentUser.sub.userId);
     const items: OrderItem[] = [];
     for (const item of input.items) {
       const product = await this.getProduct(item.productId);

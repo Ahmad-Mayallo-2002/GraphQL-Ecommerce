@@ -62,8 +62,9 @@ type Mutation {
   seedAdmin: String!
   sendCodePassword(email: String!): String!
   signUp(input: CreateUserInput!): User!
+  updateForgottedPassword(confirmNewPassword: String!, email: String!, newPassword: String!): Boolean!
   updateOrderStatus(id: String!, status: OrderStatus!): Boolean!
-  updatePassword(confirmNewPassword: String!, newPassword: String!): Boolean!
+  updatePassword(confirmNewPassword: String!, newPassword: String!, oldPassword: String!): Boolean!
   updateProduct(id: String!, image: Upload, input: UpdateProductInput!): Boolean!
   updateUser(input: UpdateUserInput!): String!
 }
@@ -125,11 +126,11 @@ type ProductsAndCounts {
 }
 
 type Query {
+  filterProducts(brand: [String!]!, category: [String!]!, color: [String!]!, size: [String!]!): [Product!]!
   getOrder(id: String!): Order!
   getOrders: [Order!]!
   getProduct(id: String!): Product!
-  getProducts(skip: Int = 0, sort: String, take: Int): ProductsAndCounts!
-  getProductsByCategory(category: String!): [Product!]!
+  getProducts(skip: Int = 0, sort: String = "", take: Int): ProductsAndCounts!
   getUser: User!
   getUserOrders(userId: String!): [Order!]!
   getUsers(skip: Int! = 0, take: Int!): UsersAndCounts!

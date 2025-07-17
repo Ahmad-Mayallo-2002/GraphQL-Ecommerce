@@ -12,6 +12,7 @@ import { LoginInput } from './input/login.type';
 import { JwtService } from '@nestjs/jwt';
 import { Payload } from 'src/types/payload.type';
 import { sendMail } from './sendMail';
+import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -74,7 +75,11 @@ export class AuthService {
     newPassword: string,
     confirmNewPassword: string,
     id: string,
+    oldPassword: string,
   ) {
+    const user = (await this.userRepo.findOneBy({ id })) as User;
+    const comparePass = await compare(oldPassword, user.password);
+    if (!comparePass) throw new Error('Invalid Password');
     if (!newPassword || !confirmNewPassword)
       throw new Error('Two passwords are required');
     if (newPassword !== confirmNewPassword)
@@ -84,6 +89,22 @@ export class AuthService {
       {
         password: await hash(newPassword, 10),
       },
+    );
+    return true;
+  }
+
+  async updateForgottedPassword(
+    email: string,
+    newPassword: string,
+    confirmNewPassword: string,
+  ) {
+    if (!newPassword || !confirmNewPassword)
+      throw new Error('Two passwords are required');
+    if (newPassword !== confirmNewPassword)
+      throw new Error('Passwords are not equal');
+    await this.userRepo.update(
+      { email },
+      { password: await hash(newPassword, 10) },
     );
     return true;
   }
